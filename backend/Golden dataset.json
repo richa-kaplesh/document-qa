@@ -1,0 +1,14 @@
+[
+    {
+        "question": "What is the main topic of this document?",
+        "expected_answer": "Replace this with an actual question and answer from your document"
+    },
+    {
+        "question": "What are the key points mentioned?",
+        "expected_answer": "Replace this with an actual question and answer from your document"
+    },
+    {
+        "question": "What conclusion does the document reach?",
+        "expected_answer": "Replace this with an actual question and answer from your document"
+    }
+]
