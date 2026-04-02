@@ -1,24 +1,26 @@
 from fastapi import FastAPI , UploadFile, File
-from fastapi.middleware.cors import CORSMiddelware
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from rag import process_document,answer_question
 import os
 import shutil
 from dotenv import load_dotenv
-from eval import run_eval
+from Eval import run_eval
 
 load_dotenv()
 groq_api_key = os.getenv("GROQ_API_KEY")
 app = FastAPI()
 
 app.add_middleware(
-    CORSMiddelware,
+    CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 vectorstore = None
+doc_info= None
+
 
 class Question(BaseModel):
     question: str
@@ -52,10 +54,10 @@ async def upload(file: UploadFile = File(...)):
 async def ask(body: Question):
     if vectorstore is None:
         return {"error": "No Document uploaded yet"}
-    answer = answer_question(vectorstore, body.question,groq_api_key)
-    return {"answer":answer}
+    result = answer_question(vectorstore, body.question,groq_api_key)
+    return result;
 
-@app.post("/Eval")
+@app.post("/eval")
 async def evaluate(body:EvalRequest):
     if vectorstore is None:
         return {"error":"No document uploaded yet. Please upload a PDF first."}
