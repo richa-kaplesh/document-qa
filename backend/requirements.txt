@@ -1,8 +1,10 @@
 fastapi
 uvicorn
-#langchain
-#langchain-community
-#langchain-groq
+langchain==0.2.16
+langchain-community==0.2.16
+langchain-groq
+langchain-core
+langchain-text-splitters
 faiss-cpu
 sentence-transformers
 pypdf

@@ -3,12 +3,10 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_groq import ChatGroq
-from langchain_core.prompts import PromptTemplate
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
-import os
-import config 
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+import config
 
 
 
@@ -41,23 +39,29 @@ def process_document(file_path:str):
 
     return vectorstore , len(chunks)
 
-def answer_question(vectorstore , question:str , groq_api_key:str):
+def answer_question(vectorstore, question: str, groq_api_key: str):
     llm = ChatGroq(
         api_key=groq_api_key,
-        model_name =config.LLM_MODEL
+        model_name=config.LLM_MODEL
     )
 
-    document_chain = create_stuff_documents_chain(llm, PROMPT_TEMPLATE)
-    retrieval_chain = create_retrieval_chain(
-        vectorstore.as_retriever(search_kwargs={"k":config.TOP_K_CHUNKS}),
-        document_chain
+    retriever = vectorstore.as_retriever(search_kwargs={"k": config.TOP_K_CHUNKS})
+
+    def format_docs(docs):
+        return "\n\n".join(doc.page_content for doc in docs)
+
+    chain = (
+        {"context": retriever | format_docs, "input": RunnablePassthrough()}
+        | PROMPT_TEMPLATE
+        | llm
+        | StrOutputParser()
     )
 
-    
-    result = retrieval_chain.invoke({"input":question})
-    source_chunks = [doc.page_content for doc in result["context"]]
+    docs = retriever.invoke(question)
+    answer = chain.invoke(question)
+    source_chunks = [doc.page_content for doc in docs]
 
     return {
-        "answer":result["result"],
-        "source_chunks":source_chunks
+        "answer": answer,
+        "source_chunks": source_chunks
     }

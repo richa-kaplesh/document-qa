@@ -53,17 +53,13 @@ async def upload(file: UploadFile = File(...)):
 @app.post("/ask")
 async def ask(body: Question):
     if vectorstore is None:
-        return {"error": "No Document uploaded yet"}
-    result = answer_question(vectorstore, body.question,groq_api_key)
-    return result;
+        return {"error": "No document uploaded yet. Please upload a PDF first."}
+    try:
+        result = answer_question(vectorstore, body.question, groq_api_key)
+        return result
+    except Exception as e:
+        return {"error": str(e)}
 
-@app.post("/eval")
-async def evaluate(body:EvalRequest):
-    if vectorstore is None:
-        return {"error":"No document uploaded yet. Please upload a PDF first."}
-    results = run_eval(vectorstore,groq_api_key,body.golden_dataset_path)
-    return results
-   
 @app.get("/status")
 def status():
     if vectorstore is None:

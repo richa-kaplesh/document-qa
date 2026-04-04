@@ -1,5 +1,4 @@
 import { useState, useRef } from "react"
-import Eval from "./Eval"
 
 const API_URL = "http://localhost:8000"
 
@@ -46,7 +45,6 @@ const styles = `
 `
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"qa" | "eval">("qa")
   const [uploaded, setUploaded] = useState(false)
   const [docName, setDocName] = useState("")
   const [chunkCount, setChunkCount] = useState(0)
@@ -55,7 +53,6 @@ export default function App() {
   const [answer, setAnswer] = useState("")
   const [sourceChunks, setSourceChunks] = useState<string[]>([])
   const [asking, setAsking] = useState(false)
-  const [vectorstore, setVectorstore] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -69,7 +66,6 @@ export default function App() {
     setDocName(data.filename)
     setChunkCount(data.chunks_created)
     setUploaded(true)
-    setVectorstore(true)
     setUploading(false)
   }
 
@@ -99,59 +95,54 @@ export default function App() {
           <p className="sub">Upload any PDF and ask questions. Powered by Llama 3 + FAISS.</p>
           <hr />
 
-          <div className="tabs">
-            <button className={`tab ${activeTab === "qa" ? "active" : ""}`} onClick={() => setActiveTab("qa")}>Ask Questions</button>
-            <button className={`tab ${activeTab === "eval" ? "active" : ""}`} onClick={() => setActiveTab("eval")}>Evaluation</button>
+
+
+
+          <div className="status-bar">
+            <span className={`status-dot ${uploaded ? "ready" : ""}`} />
+            {uploaded ? `${docName} — ${chunkCount} chunks created` : "No document loaded"}
           </div>
 
-          {activeTab === "qa" && (
-            <>
-              <div className="status-bar">
-                <span className={`status-dot ${uploaded ? "ready" : ""}`} />
-                {uploaded ? `${docName} — ${chunkCount} chunks created` : "No document loaded"}
-              </div>
+          <div className={`upload-zone ${uploaded ? "uploaded" : ""}`} onClick={() => fileRef.current?.click()}>
+            <input ref={fileRef} type="file" accept=".pdf" style={{ display: "none" }} onChange={handleUpload} />
+            <div className="upload-icon">{uploaded ? "✓" : "📄"}</div>
+            <div className="upload-text">
+              {uploading ? "Processing document..." : uploaded ? `${docName} uploaded` : "Click to upload a PDF"}
+            </div>
+            <div className="upload-sub">{uploaded ? `${chunkCount} chunks created` : "PDF files only"}</div>
+          </div>
 
-              <div className={`upload-zone ${uploaded ? "uploaded" : ""}`} onClick={() => fileRef.current?.click()}>
-                <input ref={fileRef} type="file" accept=".pdf" style={{ display: "none" }} onChange={handleUpload} />
-                <div className="upload-icon">{uploaded ? "✓" : "📄"}</div>
-                <div className="upload-text">{uploading ? "Processing document..." : uploaded ? `${docName} uploaded` : "Click to upload a PDF"}</div>
-                <div className="upload-sub">{uploaded ? `${chunkCount} chunks created` : "PDF files only"}</div>
-              </div>
+          <div className="input-group">
+            <input
+              type="text"
+              placeholder="Ask a question about your document..."
+              value={question}
+              onChange={e => setQuestion(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleAsk()}
+              disabled={!uploaded}
+            />
+            <button className="primary" onClick={handleAsk} disabled={!uploaded || !question.trim() || asking}>
+              {asking ? <><span className="spinner" />Thinking</> : "Ask"}
+            </button>
+          </div>
 
-              <div className="input-group">
-                <input
-                  type="text"
-                  placeholder="Ask a question about your document..."
-                  value={question}
-                  onChange={e => setQuestion(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && handleAsk()}
-                  disabled={!uploaded}
-                />
-                <button className="primary" onClick={handleAsk} disabled={!uploaded || !question.trim() || asking}>
-                  {asking ? <><span className="spinner" />Thinking</> : "Ask"}
-                </button>
-              </div>
-
-              {answer && (
-                <div className="answer-box">
-                  <div className="answer-label">Answer</div>
-                  <div className="answer-text">{answer}</div>
-                  {sourceChunks.length > 0 && (
-                    <div className="sources">
-                      <div className="sources-label">Source chunks used</div>
-                      {sourceChunks.map((chunk, i) => (
-                        <div key={i} className="source-chunk">{chunk.slice(0, 200)}...</div>
-                      ))}
-                    </div>
-                  )}
+          {answer && (
+            <div className="answer-box">
+              <div className="answer-label">Answer</div>
+              <div className="answer-text">{answer}</div>
+              {sourceChunks.length > 0 && (
+                <div className="sources">
+                  <div className="sources-label">Source chunks used</div>
+                  {sourceChunks.map((chunk, i) => (
+                    <div key={i} className="source-chunk">{chunk.slice(0, 200)}...</div>
+                  ))}
                 </div>
               )}
-            </>
+            </div>
           )}
 
-          {activeTab === "eval" && <Eval uploaded={uploaded} />}
-        </div>
       </div>
+    </div >
     </>
   )
 }
