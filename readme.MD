@@ -1,6 +1,6 @@
 # Document Q&A — RAG System
 
-A production-grade RAG (Retrieval Augmented Generation) system built from scratch. Upload any PDF, ask questions, get answers grounded in your document — with a full evaluation harness to measure accuracy.
+A RAG (Retrieval Augmented Generation) system built from scratch. Upload any PDF, ask questions, get answers grounded in your document — with a full evaluation harness to measure accuracy.
 
 Built with LangChain + FAISS + Groq Llama 3 + FastAPI + React.
 
