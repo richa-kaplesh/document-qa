@@ -1,6 +1,6 @@
 # Document Q&A — RAG System
 
-A RAG (Retrieval Augmented Generation) system built from scratch. Upload any PDF, ask questions, get answers grounded in your document — with a full evaluation harness to measure accuracy.
+A RAG (Retrieval Augmented Generation) system built from scratch. Upload any PDF, ask questions, get answers grounded in your document.
 
 Built with LangChain + FAISS + Groq Llama 3 + FastAPI + React.
 
@@ -11,7 +11,7 @@ Built with LangChain + FAISS + Groq Llama 3 + FastAPI + React.
 - Upload a PDF document
 - Ask questions about it in natural language
 - Get answers with source chunks shown so you can verify
-- Run an evaluation harness against a golden dataset to measure RAG accuracy
+
 
 ---
 
@@ -64,7 +64,6 @@ document-qa/
     backend/
         main.py        ← FastAPI endpoints only
         rag.py         ← core RAG pipeline
-        eval.py        ← evaluation harness
         config.py      ← all configuration in one place
         Dockerfile     ← containerization
         requirements.txt
@@ -100,8 +99,7 @@ Text converted to a vector of numbers where similar meaning = similar numbers = 
 **What is a vector database?**
 A database designed for storing and searching vectors. Instead of "find rows where name = X", you do "find vectors most similar to this query vector". FAISS does this using cosine similarity — measuring the angle between vectors.
 
-**What is cosine similarity?**
-A measure of how similar two vectors are. Ranges from 0 (completely different) to 1 (identical). Used both for retrieval (finding relevant chunks) and evaluation (comparing expected vs actual answers).
+
 
 **What is chunking and why does it matter?**
 You can't send a 100-page PDF to an LLM — too many tokens. You split it into small chunks of 500 characters each and only send the relevant ones. Chunk size affects quality:
@@ -208,18 +206,8 @@ Result: the answer as a plain string.
 
 ---
 
-## Evaluation Harness
-
-This is the part most RAG tutorials skip. We measure our system's accuracy systematically.
-
 **What is a golden dataset?**
 A set of question-answer pairs you create manually from your document, where you already know the correct answer. Like a test with an answer key.
-
-**How evaluation works:**
-1. For each question in the golden dataset, ask the RAG system
-2. Compare the RAG answer to the expected answer using cosine similarity
-3. If similarity >= threshold (0.7 by default), it passes
-4. Report overall pass rate
 
 **Why cosine similarity instead of exact match?**
 "The return policy is 30 days" and "You have thirty days to return items" mean the same thing but share few words. Cosine similarity compares meaning, not words.
@@ -229,9 +217,6 @@ A set of question-answer pairs you create manually from your document, where you
 2. Read through it manually
 3. Write 10-20 questions with answers you can verify directly from the document
 4. Save in `data/golden_dataset.json`
-
-**How to run evaluation:**
-Hit `POST /eval` from `localhost:8000/docs` after uploading a document.
 
 ---
 
@@ -245,7 +230,6 @@ LLM_MODEL = "llama-3.3-70b-versatile"    # Groq LLM model
 CHUNK_SIZE = 500                           # characters per chunk
 CHUNK_OVERLAP = 50                         # overlap between chunks
 TOP_K_CHUNKS = 3                           # chunks retrieved per question
-SIMILARITY_THRESHOLD = 0.7                # eval pass threshold
 ```
 
 ---
@@ -347,7 +331,6 @@ Every choice we made has alternatives. Here's what else exists:
 - Support multiple documents simultaneously
 - Add reranking for better retrieval accuracy
 - Add hybrid search (semantic + keyword) for better coverage
-- Use RAGAs framework for proper evaluation metrics
 - Stream LLM response instead of waiting for full answer
 
 ---
